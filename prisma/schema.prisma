@@ -62,3 +62,54 @@ model RolePermission {
 
   @@id([roleId, permissionId])
 }
+
+model Category {
+  id            Int            @id @default(autoincrement())
+  name          String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  subCategories SubCategory[]
+}
+
+model SubCategory {
+  id          Int       @id @default(autoincrement())
+  name        String
+
+  categoryId  Int
+  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  services    Service[]
+}
+
+model Service {
+  id             Int       @id @default(autoincrement())
+  name           String
+  description    String?
+
+  subCategoryId  Int
+  subCategory    SubCategory @relation(fields: [subCategoryId], references: [id], onDelete: Cascade)
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  variants       ServiceVariant[]
+}
+
+model ServiceVariant {
+  id         Int      @id @default(autoincrement())
+  name       String
+  price      Float
+  duration   Int?     // minutes (recommended instead of string)
+
+  isActive   Boolean  @default(true)
+
+  serviceId  Int
+  service    Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
