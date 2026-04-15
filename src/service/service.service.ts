@@ -1,11 +1,18 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { BaseService } from 'src/common/base/base.service';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 
 @Injectable()
-export class ServiceService {
-  constructor(private prisma: PrismaService) {}
+export class ServiceService extends BaseService<
+  'service',
+  CreateServiceDto,
+  UpdateServiceDto
+> {
+  constructor(protected prisma: PrismaService) {
+    super(prisma, 'service');
+  }
 
   async create(dto: CreateServiceDto) {
     const subCategory = await this.prisma.subCategory.findUnique({
@@ -16,25 +23,12 @@ export class ServiceService {
       throw new NotFoundException('SubCategory not found');
     }
 
-    return this.prisma.service.create({
-      data: {
-        name: dto.name,
-        description: dto.description,
-        subCategoryId: dto.subCategoryId,
-      },
-    });
+    return super.create(dto);
   }
 
   findAll(subCategoryId?: string) {
-    return this.prisma.service.findMany({
+    return super.findAll({
       where: subCategoryId ? { subCategoryId } : {},
-      orderBy: { createdAt: 'desc' },
-    });
-  }
-
-  findOne(id: string) {
-    return this.prisma.service.findUnique({
-      where: { id },
     });
   }
 
@@ -49,15 +43,6 @@ export class ServiceService {
       }
     }
 
-    return this.prisma.service.update({
-      where: { id },
-      data: dto,
-    });
-  }
-
-  remove(id: string) {
-    return this.prisma.service.delete({
-      where: { id },
-    });
+    return super.update(id, dto);
   }
 }

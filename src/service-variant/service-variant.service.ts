@@ -1,11 +1,18 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { BaseService } from 'src/common/base/base.service';
 import { CreateServiceVariantDto } from './dto/create-service-variant.dto';
 import { UpdateServiceVariantDto } from './dto/update-service-variant.dto';
 
 @Injectable()
-export class ServiceVariantService {
-  constructor(private prisma: PrismaService) {}
+export class ServiceVariantService extends BaseService<
+  'serviceVariant',
+  CreateServiceVariantDto,
+  UpdateServiceVariantDto
+> {
+  constructor(protected prisma: PrismaService) {
+    super(prisma, 'serviceVariant');
+  }
 
   async create(dto: CreateServiceVariantDto) {
     const service = await this.prisma.service.findUnique({
@@ -16,27 +23,15 @@ export class ServiceVariantService {
       throw new NotFoundException('Service not found');
     }
 
-    return this.prisma.serviceVariant.create({
-      data: {
-        name: dto.name,
-        price: dto.price,
-        duration: dto.duration,
-        isActive: dto.isActive ?? true,
-        serviceId: dto.serviceId,
-      },
+    return super.create({
+      ...dto,
+      isActive: dto.isActive ?? true,
     });
   }
 
   findAll(serviceId?: string) {
-    return this.prisma.serviceVariant.findMany({
+    return super.findAll({
       where: serviceId ? { serviceId } : {},
-      orderBy: { createdAt: 'desc' },
-    });
-  }
-
-  findOne(id: string) {
-    return this.prisma.serviceVariant.findUnique({
-      where: { id },
     });
   }
 
@@ -51,15 +46,6 @@ export class ServiceVariantService {
       }
     }
 
-    return this.prisma.serviceVariant.update({
-      where: { id },
-      data: dto,
-    });
-  }
-
-  remove(id: string) {
-    return this.prisma.serviceVariant.delete({
-      where: { id },
-    });
+    return super.update(id, dto);
   }
 }
